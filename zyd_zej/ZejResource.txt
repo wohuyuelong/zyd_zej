@@ -1,0 +1,241 @@
+*** Settings ***
+Documentation     存放账e捷自动化用例调用到的一些公共的关键字
+Library           Selenium2Library
+Library           DatabaseLibrary
+Library           Collections
+Library           string
+
+*** Variables ***
+${loginurl}       https://beta.zej.onlyou.com    # 登录的URL地址
+${Browser}        ff    # 使用的浏览器类型
+${username}       demo_group    # 登录用户名pancs_group_u8,auto_group
+${password}       123456    # 登录密码
+
+*** Keywords ***
+Login Zej
+    Open Browser    ${loginurl}    ${Browser}
+    Maximize Browser Window
+    Page Should Contain Image    /assets/images/logo.png
+    Input Text    userName    ${username}
+    Input Password    password    ${password}
+    Click Button    submitBtn
+    Page Should Contain Image    账e捷logo
+
+Open Menu
+    [Arguments]    ${firstClassNavigation}    ${secondClassNavigation}    ${frameID}
+    Sleep    3
+    Mouse Over    link=${firstClassNavigation}    #鼠标移到一级菜单，出现浮动菜单
+    Click Element    link=${secondClassNavigation}    #鼠标单击浮动菜单中的二级菜单
+    Select Frame    id=${frameID}    #根据框架ID选择页面框架
+    Sleep    5
+
+Connect Database
+    [Arguments]    ${dbname}    ${username}    ${password}    ${host}    ${port}
+    Connect To Database    psycopg2    ${dbname}    ${username}    ${password}    ${host}    ${port}
+
+Connect SIT Database
+    Connect Database    es_test    es_test    es_test    172.16.11.35    5432
+
+Connect Beta Database
+    Connect Database    es_uat    es_uat    es_uat    172.16.11.80    5432
+
+Connect ZYD_SIT Database
+    Connect Database    zyd_test    zyd_test    zyd_test    172.16.11.35    5432
+
+Delete SQL By CorpID
+    [Arguments]    ${corpID}
+    [Documentation]    测试数据：测试账号pancs_group_u8/123456
+    ...    企业名称：潘才胜测试用的集团（U8）
+    ...    corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    根据企业ID，删除相关的业务处理和会计预处理数据，包括对应的票据（t_es_bil_bill）数据;
+    ...    delete from t_es_ebp_image_busibill_rel where image_id in
+    ...    (select id from t_es_bil_bill where corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_bil_bill_item where bill_id in (SELECT "id" FROM t_es_bil_bill WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_bil_bill WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_preprocess_error WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_eap_preprocess_error WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_bil_preprocess_error WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_eap_voucher_entry \ WHERE voucher_id in (SELECT "id" FROM t_es_eap_voucher WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_eap_voucher WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_payable_order_body WHERE \ head_id in \ (SELECT "id" FROM t_es_ebp_payable_order_head WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_ebp_payable_order_head WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_payment_order_body WHERE head_id in \ (SELECT "id" FROM t_es_ebp_payment_order_head WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_ebp_payment_order_head WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_purchase_order_b WHERE head_id in (SELECT "id" FROM t_es_ebp_purchase_order_h WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_ebp_purchase_order_h WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_purchase_pay_appr_b WHERE head_id in (SELECT "id" FROM t_es_ebp_purchase_pay_appr_h WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_ebp_purchase_pay_appr_h WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_payable_bill WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_purchase_invoice WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_drafts_rece_report WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_drafts_pay_report WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_payment_receiver_body WHERE head_id in \ (SELECT "id" FROM t_es_ebp_payment_receiver_head WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_ebp_payment_receiver_head WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_payment_order_inner_b WHERE head_id in \ (SELECT "id" FROM t_es_ebp_payment_order_inner_h WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_ebp_payment_order_inner_h WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_ebp_receiable_order_body WHERE head_id in \ (SELECT "id" FROM t_es_ebp_receiable_order_head WHERE corp_id='137a73c476274539bb7efff6c455ddeb');
+    ...    DELETE FROM t_es_ebp_receiable_order_head WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    DELETE FROM t_es_eap_expenses_payment WHERE corp_id='137a73c476274539bb7efff6c455ddeb';
+    ...    delete from t_es_bil_bill_exception where corp_id = '${corpID}'
+    ...    删除完数据后，链接账益达数据库修改对应企业票据的同步状态。
+    ...    update t_vop_bil_bill set is_syn = null
+    ...    where id like '%c%'
+    ...    and corp_id = '137a73c476274539bb7efff6c455ddeb'
+    ...    and create_ts > '17-JAN-17 14:46:00.773';
+    Execute Sql String    delete from t_es_ebp_image_busibill_rel where image_id in (select id from t_es_bil_bill where corp_id='${corpID}'); \ \ DELETE FROM t_es_ebp_preprocess_error WHERE corp_id='${corpID}'; \ DELETE FROM t_es_eap_preprocess_error WHERE corp_id='${corpID}'; DELETE FROM t_es_bil_preprocess_error WHERE corp_id='${corpID}'; DELETE FROM t_es_eap_voucher_entry \ WHERE voucher_id in (SELECT "id" FROM t_es_eap_voucher WHERE corp_id='${corpID}'); DELETE FROM t_es_eap_voucher WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_payable_order_body WHERE \ head_id in \ (SELECT "id" FROM t_es_ebp_payable_order_head WHERE corp_id='${corpID}'); DELETE FROM t_es_ebp_payable_order_head WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_payment_order_body WHERE head_id in \ (SELECT "id" FROM t_es_ebp_payment_order_head WHERE corp_id='${corpID}'); DELETE FROM t_es_ebp_payment_order_head WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_purchase_order_b WHERE head_id in (SELECT "id" FROM t_es_ebp_purchase_order_h WHERE corp_id='${corpID}'); DELETE FROM t_es_ebp_purchase_order_h WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_purchase_pay_appr_b WHERE head_id in (SELECT "id" FROM t_es_ebp_purchase_pay_appr_h WHERE corp_id='${corpID}'); DELETE FROM t_es_ebp_purchase_pay_appr_h WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_payable_bill WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_purchase_invoice WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_drafts_rece_report WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_drafts_pay_report WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_payment_receiver_body WHERE head_id in \ (SELECT "id" FROM t_es_ebp_payment_receiver_head WHERE corp_id='${corpID}'); DELETE FROM t_es_ebp_payment_receiver_head WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_payment_order_inner_b WHERE head_id in \ (SELECT "id" FROM t_es_ebp_payment_order_inner_h WHERE corp_id='${corpID}'); DELETE FROM t_es_ebp_payment_order_inner_h WHERE corp_id='${corpID}'; DELETE FROM t_es_ebp_receiable_order_body WHERE head_id in \ (SELECT "id" FROM t_es_ebp_receiable_order_head WHERE corp_id='${corpID}'); DELETE FROM t_es_ebp_receiable_order_head WHERE corp_id='${corpID}'; DELETE FROM t_es_eap_expenses_payment WHERE corp_id='${corpID}';DELETE FROM t_es_bil_bill_item where bill_id in (SELECT "id" FROM t_es_bil_bill WHERE corp_id='${corpID}'); DELETE FROM t_es_bil_bill WHERE corp_id='${corpID}';delete from t_es_bil_bill_exception where corp_id = '${corpID}';
+
+Delete Betareimb smartchecklog
+    [Arguments]    ${biz_no}
+    [Documentation]    连接数据，删除报销单历史预审结果数据
+    Connect Beta Database
+    ${reim_ids}    Query    SELECT "id" FROM t_es_sck_apply_reimbursement WHERE reimbursement_no='${biz_no}';
+    ${reim_id}    Get From List    ${reim_ids[0]}    0
+    Execute Sql String    DELETE FROM t_es_sck_smartcheck_log WHERE reimbursement_id ='${reim_id}';
+    Disconnect From Database
+
+Connect ZYD_UAT Database
+    Connect Database    zyd_uat    zyd_uat    zyd_uat    172.16.11.35    5432
+
+Login Zej With Arguments
+    [Arguments]    ${loginurl}    ${Browser}    ${username}    ${password}
+    Open Browser    ${loginurl}    ${Browser}
+    Maximize Browser Window
+    Page Should Contain Image    /assets/images/logo.png
+    Input Text    userName    ${username}
+    Input Password    password    ${password}
+    Click Button    submitBtn
+    Page Should Contain Image    账e捷logo
+
+Connect Bpctest Database
+    Connect Database    es_gaizao_test    es_gaizao_test    es_gaizao_test    172.16.11.80    5432
+
+Login Fyjh
+    [Arguments]    ${loginurl}    ${Browser}    ${username}    ${password}
+    [Documentation]    登录报销前台
+    ...    loginurl：url地址；
+    ...    Browser：使用的浏览器类型
+    ...    username：登录账户
+    ...    password：登录密码
+    Open Browser    ${loginurl}    ${Browser}
+    Set Selenium Implicit Wait    3
+    Maximize Browser Window
+    Input Text    textuname    ${username}
+    Input Text    testpassword    ${password}
+    Click Element    btn_logon
+    Wait Until Keyword Succeeds    10    2    Page Should Contain    我的报销单
+
+Open Fyjh Menu
+    [Arguments]    ${menuname}    ${frameID}
+    [Documentation]    打开报销前台的菜单
+    ...    ${menuname}：菜单名字
+    ...    ${frameID}：页面框架ID
+    Click Element    link=${menuname}
+    sleep    3s
+    Select Frame    id=${frameID}    #进入iframe
+    sleep    2s
+
+Select Fyjh Biz_no
+    [Arguments]    ${biz_no}
+    Click Element    xpath=//input[@id='dateRange']    #点击日期控件
+    sleep    3s
+    Click Element    xpath=//span[@title='清空']    #点击清空
+    sleep    3s
+    Input Text    reimbursementNo    ${biz_no}    #输入报销单号
+    Sleep    2
+    Click Element    link=查询
+    Sleep    3
+
+Rerun Fyjh Audit
+    Click Element    xpath=//span[@title='重新预审']    #单击重新预审按钮
+    Sleep    3
+    Click Element    xpath=//button[@i-id='ok']
+    Sleep    2
+    Click Element    link=查询
+    Sleep    2
+
+Open Fyjh Biz_detail
+    [Arguments]    ${frameID}
+    ${result}    Get Text    xpath=//table[@id='grid']/tbody/tr[2]/td[7]/a
+    Run Keyword IF    '${result}'=='预审不通过'    Click Element    xpath=//span[@title='详情']
+    ...    ELSE IF    '${result}'=='预审通过'    Click Element    xpath=//span[@title='详情']
+    ...    ELSE    FAIL    预审结果获取失败
+    Sleep    2
+    Unselect Frame
+    Select frame    id=${frameID}
+    Sleep    5
+
+Assert Fyjh Result
+    [Arguments]    ${tr_no}    ${hope_rulename}    ${hope_audit_count}    ${hope_error_count}    ${hope_tip_count}    #第几行规则|规则名称|检查次数|异常数|提示数
+    ${rule_name}    Get Text    xpath=//div[@id='gview_grid']/div[3]/div[1]/table/tbody/tr[${tr_no}+1]/td[2]
+    Log    ${rule_name}
+    Run Keyword And Continue On Failure    Should Be Equal    ${rule_name}    ${hope_rulename}    Fail:规则名称与预期结果不一致
+    ${audit_count}    Get Text    xpath=//div[@id='gview_grid']/div[3]/div[1]/table/tbody/tr[${tr_no}+1]/td[3]
+    Log    ${audit_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${audit_count}    ${hope_audit_count}    Fail:检查次数与预期结果不一致
+    ${error_count}    Get Text    xpath=//div[@id='checkResultGridId']/div/div[3]/div[3]/div[1]/table/tbody/tr[${tr_no}+1]/td[4]
+    Log    ${error_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${error_count}    ${hope_error_count}    Fail:异常数与预期结果不一致
+    ${tip_count}    Get Text    xpath=//div[@id='gview_grid']/div[3]/div[1]/table/tbody/tr[${tr_no}+1]/td[5]
+    Log    ${tip_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${tip_count}    ${hope_tip_count}    Fail:提示数与预期结果不一致
+
+verify Fyjh Result
+    [Arguments]    ${item}    ${hope_audit_count}    ${hope_error_count}    ${hope_tip_count}
+    ${audit_count}    Get Text    xpath=//div[@id='gview_grid']/div[3]/div[1]/table/tbody/tr[${item}+1]/td[3]
+    Log    ${audit_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${audit_count}    ${hope_audit_count}    Fail:检查次数与预期结果不一致
+    ${error_count}    Get Text    xpath=//div[@id='checkResultGridId']/div/div[3]/div[3]/div[1]/table/tbody/tr[${item}+1]/td[4]
+    Log    ${error_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${error_count}    ${hope_error_count}    Fail:异常数与预期结果不一致
+    ${tip_count}    Get Text    xpath=//div[@id='gview_grid']/div[3]/div[1]/table/tbody/tr[${item}+1]/td[5]
+    Log    ${tip_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${tip_count}    ${hope_tip_count}    Fail:提示数与预期结果不一致
+
+Auto Geterrorrule row
+    [Arguments]    ${verify_rule}    ${hope_audit_count}    ${hope_error_count}    ${hope_tip_count}    # 检验的规则|检查次数|不通过数|提示数
+    ${item}    Set Variable    0
+    Comment    ${error_rule_text}    Create List
+    @{rule_error}    Get Webelements    xpath=//table[@id='grid']/tbody/tr/td[2]/span
+    : FOR    ${error}    IN    @{rule_error}
+    \    ${error_rule}    Get Text    ${error}
+    \    ${item}    Evaluate    ${item}+1
+    \    Run Keyword And Return If    '${error_rule}' == '${verify_rule}'    verify Fyjh Result    ${item}    ${hope_audit_count}    ${hope_error_count}
+    \    ...    ${hope_tip_count}
+
+Goback Frame
+    [Arguments]    ${frameid}
+    [Documentation]    返回审核列表
+    Unselect Frame
+    ${frame}    Evaluate    '${frameid}'[:-5]    #取输入的frameid从0到倒数第5位（不含）
+    Click Element    xpath=//li[@id='${frame}']/div[1]    #点击已打开的菜单列表
+    sleep    1
+    Select Frame    ${frameid}
+
+Show Allrule Result
+    [Documentation]    选择‘全部’ 设置每页显示数量50
+    Click Link    预审结果
+    Sleep    2
+    Click Link    全部    #点击‘全部’页卡
+    Sleep    2
+    Click Element    xpath=//td[@id='pager_center']/table/tbody/tr/td[8]/select    #点击翻页控件中的页面数量下拉框
+    Select From List By Index    xpath=//td[@id='pager_center']/table/tbody/tr/td[8]/select    3    #选择下拉框中的值
+    sleep    2
+
+Assert Result First Search
+    [Arguments]    ${hope_rule_name}    ${hope_audit_count}    ${hope_error_count}    ${hope_tip_count}    #规则名称|检查次数|异常数|提示数
+    [Documentation]    报销前台，预审结果，先输入审核规则查询出对应的规则，然后再比对结果
+    Click Element    xpath=//body/div[1]/div[2]/div[4]/div[1]/ul/li[1]/a    #切换到预审结果的全部页签
+    Sleep    3
+    Input text    id=ruleIpt    ${hope_rule_name}    #输入审核规则名称
+    Sleep    2
+    Click Element    link=查询
+    Sleep    3
+    ${audit_count}    Get Text    xpath=//div[@id='gview_grid']/div[3]/div[1]/table/tbody/tr[2]/td[3]
+    Log    ${audit_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${audit_count}    ${hope_audit_count}    Fail:检查次数与预期结果不一致
+    ${error_count}    Get Text    xpath=//div[@id='gview_grid']/div[3]/div[1]/table/tbody/tr[2]/td[4]
+    Log    ${error_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${error_count}    ${hope_error_count}    Fail:异常数与预期结果不一致
+    ${tip_count}    Get Text    xpath=//div[@id='gview_grid']/div[3]/div[1]/table/tbody/tr[2]/td[5]
+    Log    ${tip_count}
+    Run Keyword And Continue On Failure    Should Be Equal    ${tip_count}    ${hope_tip_count}    Fail:提示数与预期结果不一致
